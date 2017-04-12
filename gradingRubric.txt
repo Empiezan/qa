@@ -1,4 +1,36 @@
 #Grading Rubric
 
-5 points - Submit Rubric to Bitbucket on Time
+Creative Project: Q&A Website
+>> Django framework with AngularJS and Bootstrap
+>> A site where people, with or without an account, can ask questions and get answers.
+>> Questions are visible to everyone on the main page and can be upvoted or downvoted.
+>> Users can filter their view of these questions by number of votes or by submission time
+>> Users with an account can upvote/downvote, post answers to questions, reply to answers to 
+>> questions, be banned, have a post history, and pm other registered users. 
 
+Required Section ():
+5 points - Submit Rubric to Bitbucket on Time
+3 points - New users can register
+3 points - Passwords are stored salted/hashed
+4 points - Users can log in/out
+3 points - session is created when a user logs in
+8 points - Users can delete their own questions, answers, replies to answers but not those of other users
+3 points - Questions can be posted
+4 points - Users can search for a particular question
+6 points - Answers can be posted in association with those questions, and replies can be posted in association with those answers
+5 points - Users have their own profile page listing their post history with a link to the thread containing that post
+4 points - Registered users can save questions as "favorites" that are listed in their profile page
+5 points - Registered users can private message other registered users
+2 points - Registered Users can select profile images
+3 points - Questions can be upvoted/downvoted by registered users
+3 points - Registered users have scores associated with them based on the # of upvotes they've received from their answers
+4 points - Users can filter questions by vote count and submission time. This filter remains while user navigates through the site.
+5 points - CSRF tokens are passed when creating/deleting questions/answers/replies/pm's
+6 points - The main page lists 25 questions at a time and has arrow buttons to access the next/previous 25 questions
+4 points - protects against SQL injections and XSS attacks
+
+Creative Section (20 points):
+3 points - Designated "moderators" can ban users
+4 points - Registered users can report other registered users to the moderators. These reports are listed in all moderators' profile page
+5 points - Bootstrap is used to make site look nice (e.g., pagination, pager, etc...). Site looks nice in general.
+8 points - Badges are awarded to registered users after accumulating a certain number of points. Progress toward the next badge is shown on profile page 
