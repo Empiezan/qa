@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8"/>
+<title>Q & A Site</title>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/start/jquery-ui.css" type="text/css" rel="Stylesheet" />
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js"></script>
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'qa/style.css' %}" />
+
+</head>
+<body>
+{% load qa_extras %}
+<!-- posts -->
+<div id="main">
+
+{% if user.is_authenticated %}
+{{user.username}}
+<form action="/qa/profile/" id="profile">
+    <input type="submit" value="Profile" />
+</form>
+<form action="/qa/logout/" id="logout">
+    <input type="submit" value="Logout" />
+</form>
+{% else  %}
+<form action="/qa/login/" id="login">
+    <input type="submit" value="Login" />
+</form>
+<form action="/qa/register/">
+    <input type="submit" value="Register" />
+</form>
+{% endif %}
+<form action="/qa/ask/" id="ask">
+	<input type="submit" value="Ask" />
+</form>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+{% if post_list %}
+	<table>
+		<tr>
+			<th>Vote Count</th>
+			<th>Post</th>
+			<th>Author</th>
+			<th>Submission Date</th>
+		</tr>
+    {% for post in post_list %}
+			<tr>
+				<td>{{post.vote_count}}</td>
+				<td><a href="/qa/{{ post.id }}/">{{ post.post_text }}</a></td>
+				<td>{{post.author}}</td>
+				<td>{{post.pub_date}}</td>
+			</tr>
+    {% endfor %}
+		</tr>
+	</table>
+{% else %}
+    <p>No posts are available.</p>
+{% endif %}
+</div>
+
+{% current_time "%Y-%m-%d %I:%M %p" as the_time %}
+<p>The time is {{ the_time }}.</p>
+
+</body>
+</html>

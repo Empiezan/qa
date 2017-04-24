@@ -1,0 +1,44 @@
+/*body {
+  display: list-item;
+  text-align: center;
+  vertical-align: middle;
+  background-color: teal;
+}
+form {
+  background-color: teal;
+}*/
+
+body{
+	width: 760px; /* how wide to make your web page */
+	background-color: teal; /* what color to make the background */
+	margin: 0 auto;
+	padding: 0;
+	font:12px/16px Verdana, sans-serif; /* default font */
+}
+form {
+	background-color: #FFF;
+	margin: 0
+	padding: 10px;
+	display: inline-block;
+}
+div#main{
+	background-color: #FFF;
+	margin: 0;
+	padding: 10px;
+}
+table {
+	width: 100%;
+}
+table tr:nth-child(even) {
+    background-color: #eee;
+}
+table tr:nth-child(odd) {
+    background-color: #fff;
+}
+table th {
+    color: white;
+    background-color: black;
+}
+#logout {
+	float: right;
+}
