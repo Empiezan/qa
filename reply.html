@@ -1,0 +1,11 @@
+{% extends 'qa/base.html' %}
+{% block content %}
+<h1>{{ comm }}</h1>
+{% if comm %}
+  <form action="{% url 'qa:replying' slug=comm.id %}" method="post">
+    {% csrf_token %}
+    <textarea name="reply" id="reply" label="reply"> </textarea>
+  	<input type="submit" value="Reply" />
+  </form>
+{% endif %}
+{% endblock %}

@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 <head>
 <meta charset="utf-8"/>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
 <title></title>
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'qa/style.css' %}" />
 </head>
 <body>
 <div id="main">
-  {% block content %}
-  {% endblock %}
+<form action="/qa/home/" id = 'Home'>
+  <input type="submit" value="Go Home">
+</form>
+{% block content %}
+{% endblock %}
+
 </div>
 </body>
 </html>

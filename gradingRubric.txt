@@ -1,4 +1,4 @@
-#Grading Rubric
+﻿#Grading Rubric
 
 Creative Project: Q&A Website
 >> Django framework with AngularJS and Bootstrap
@@ -34,3 +34,5 @@ Creative Section (20 points):
 4 points - Registered users can report other registered users to the moderators. These reports are listed in all moderators' profile page
 5 points - Bootstrap is used to make site look nice (e.g., pagination, pager, etc...). Site looks nice in general.
 8 points - Badges are awarded to registered users after accumulating a certain number of points. Progress toward the next badge is shown on profile page 
+
+<slug>.*

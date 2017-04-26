@@ -1,6 +1,7 @@
 from django import forms
 
-from qa.models import Post
+class SearchForm(forms.Form):
+    keyword = forms.CharField(label='', max_length=100)
 
 class LogForm(forms.Form):
     username = forms.CharField(label='Username', max_length=100)
@@ -14,3 +15,17 @@ class AskForm(forms.Form):
 
 class DeleteForm(forms.Form):
     hidden = forms.CharField(widget = forms.HiddenInput())
+
+class VoteForm(forms.Form):
+    CHOICES = ("up","down")
+    vote = forms.ChoiceField(choices = CHOICES)
+
+class CommentForm(forms.Form):
+    comment = forms.CharField(label='', widget=forms.Textarea(attrs={'rows': 3, 'cols': 40, 'style': 'height: 3em;'}))
+
+class ReplyForm(forms.Form):
+    reply = forms.CharField(label='', widget=forms.Textarea())
+
+class ImageUploadForm(forms.Form):
+    """Image upload form."""
+    image = forms.ImageField()

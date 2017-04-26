@@ -2,6 +2,13 @@
 <head>
 <meta charset="utf-8"/>
 <title>Q & A Site</title>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/start/jquery-ui.css" type="text/css" rel="Stylesheet" />
 <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
@@ -35,15 +42,29 @@
 <form action="/qa/ask/" id="ask">
 	<input type="submit" value="Ask" />
 </form>
+<form action="/qa/" method="get" id="search">
+  <input type="text" name="keyword" id="keyword" />
+  <input type="submit" value="Search"> </input>
+</form>
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 {% if post_list %}
-	<table>
+	<table class="table-hover">
 		<tr>
-			<th>Vote Count</th>
+			<th>
+        <form action="/qa/" method="get">
+          <input type="text" name="vote_count" id="vote_count" value="vote_count" style="display:none;" class="table-submit"/>
+          <input type="submit" value="Vote Count" class="table-submit" />
+        </form>
+      </th>
 			<th>Post</th>
 			<th>Author</th>
-			<th>Submission Date</th>
+			<th>
+        <form action="/qa/" method="get">
+          <input type="text" name="pub_date" id="pub_date" value="pub_date" style="display:none;" class="table-submit"/>
+          <input type="submit" value="Submission Date" class="table-submit" />
+        </form>
+      </th>
 		</tr>
     {% for post in post_list %}
 			<tr>
@@ -55,13 +76,30 @@
     {% endfor %}
 		</tr>
 	</table>
+
+  <!-- <div class="pagination"> -->
+      <ul class="pager">
+          {% if post_list.has_previous %}
+              <li class="previous"><a href="?page={{ post_list.previous_page_number }}">previous</a></li>
+          {% endif %}
+
+          <li class="current">
+              Page {{ post_list.number }} of {{ post_list.paginator.num_pages }}.
+          </li>
+
+          {% if post_list.has_next %}
+              <li class="next"><a href="?page={{ post_list.next_page_number }}">next</a></li>
+          {% endif %}
+      </ul>
+  <!-- </div> -->
+
 {% else %}
     <p>No posts are available.</p>
 {% endif %}
-</div>
 
 {% current_time "%Y-%m-%d %I:%M %p" as the_time %}
-<p>The time is {{ the_time }}.</p>
-
+<br>
+</div>
+</label>The time is {{ the_time }}.</label>
 </body>
 </html>

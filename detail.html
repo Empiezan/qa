@@ -1,22 +1,62 @@
-<!DOCTYPE html>
-<head>
-<meta charset="utf-8"/>
-<title>Details</title>
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'qa/style.css' %}" />
-</head>
-<body>
-<div id="main">
-<h1>{{ post.post_text }}</h1>
-<form action="/qa/vote" id="vote">
-  <input type="submit" value="upvote" />
-  <input type="submit" value="downvote" />
+{% extends 'qa/base.html' %}
+{% block content %}
+<h3>{{post.vote_count}} Votes</h3>
+<blockquote>
+  <p>{{ post.post_text }}</p>
+  <footer>{{post.author}}</footer>
+</blockquote>
+<form action="{% url 'qa:favorite' slug=post.id %}" method="post">
+  {% csrf_token %}
+  <input type="submit" value="Favorite" />
 </form>
+<br>
+{% if user.is_authenticated %}
+  {% if user.username == post.author %}
+  {% else %}
+    {% if post.author == 'Guest' %}
+    {% else %}
+      <a href="{% url 'qa:report' slug=post.id %}">report</a>
+    {% endif %}
+  {% endif %}
+{% endif %}
+<br>
+{% if user.is_authenticated %}
+<form action="{% url 'qa:vote' slug=post.id %}" method="post">
+{% csrf_token %}
+  <input type="radio" name="choice" id="upvote" value="upvote" />
+  <label for="upvote">Upvote</label><br />
+	<input type="radio" name="choice" id="downvote" value="downvote" />
+  <label for="downvote">Downvote</label><br />
+	<input type="submit" value="Vote" />
+</form>
+<br>
+<form action="{% url 'qa:comment' slug=post.id %}" method="post">
+  {% csrf_token %}
+  {{ form }}
+  <br>
+	<input type="submit" value="Comment"></input>
+</form>
+{% endif %}
 <ul>
 {% for comment in post.comment_set.all %}
-    <li>{{ choice.comment_text }}</li>
+  <div class="well">
+    <li>{{ comment.comment_text }} - {{ comment.author }}
+      {% if user.is_authenticated %}<a href="{% url 'qa:reply' comment.id %}">reply</a>{% endif %}
+      {% if user.username == comment.author %}
+        <a href="{% url 'qa:delComment' comment.id %}">delete</a>
+      {% endif %}
+      <ul>
+        {% for reply in comment.reply_set.all %}
+          <li>
+            {{ reply.reply_text }} - {{ reply.author }}
+            {% if user.username == reply.author %}
+            <a href="{% url 'qa:delReply' reply.id %}">delete</a>
+          {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </li>
+  </div>
 {% endfor %}
 </ul>
-</div>
-</body>
-</html>
+{% endblock %}

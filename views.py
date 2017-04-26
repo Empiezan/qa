@@ -10,6 +10,9 @@ from django.views import generic
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Sum
+from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.models import User
 from django.views import View
 
@@ -17,32 +20,69 @@ import datetime
 
 import logging
 
-from .forms import LogForm, LogoutForm, AskForm, DeleteForm
-from .models import Post, Comment
+from .forms import SearchForm, LogForm, LogoutForm, AskForm, DeleteForm, VoteForm, CommentForm, ReplyForm, ImageUploadForm
+from .models import Post, Comment, Reply, Profile
 
 
 class HomeView(generic.ListView):
+    form_class = SearchForm
+    initial = {'keyword' : ''}
     template_name = 'qa/index.html'
     context_object_name = 'post_list'
+    model = Post
 
-    def get_queryset(self):
-        """Return the last twenty-five published questions."""
-        return Post.objects.order_by('-vote_count')[:25]
+    def get(self, request, *args, **kwargs):
+        vote_count = request.GET.get('vote_count', None)
+        pub_date = request.GET.get('pub_date', None)
+        keyword = request.GET.get('keyword', None)
+        post = Post.objects.all()
+
+        if keyword and keyword != '':
+            post = post.filter(post_text=keyword)
+        elif pub_date:
+            post = post.order_by('-pub_date')
+        else:
+            post = post.order_by('-vote_count')
+
+        paginator = Paginator(post, 25) # Show 25 contacts per page
+
+        page = request.GET.get('page')
+        try:
+            posts = paginator.page(page)
+        except PageNotAnInteger:
+            # If page is not an integer, deliver first page.
+            posts = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range (e.g. 9999), deliver last page of results.
+            posts = paginator.page(paginator.num_pages)
+
+        # form = self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'post_list': posts})
+
 
 class DetailView(generic.DetailView):
+    form_class = CommentForm
+    initial= {'comment' : 'some comment'}
     model = Post
     template_name = 'qa/detail.html'
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class(initial=self.initial)
+        postid = request.get_full_path().split('/')[-2]
+        post = Post.objects.get(id=postid)
+        return render(request, self.template_name, {'form': form, 'post': post})
+
 
 class LoginView(View):
     form_class = LogForm
     initial = {'username': '','password': ''}
     template_name = 'qa/login.html'
-    # m = Member.objects.get(username=request.POST['username'])
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(initial=self.initial)
         return render(request, self.template_name, {'form': form})
 
+    @method_decorator(csrf_protect)
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
@@ -70,6 +110,7 @@ class RegisterView(View):
         form = self.form_class(initial=self.initial)
         return render(request, self.template_name, {'form': form})
 
+    @method_decorator(csrf_protect)
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
@@ -79,13 +120,13 @@ class RegisterView(View):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 # Return an 'invalid registration' error message.
-                return HttpResponseRedirect('/qa/register')
+                return HttpResponseRedirect(reverse('qa:home'))
             else:
                 user = User.objects.create_user(username, 'example@wustl.edu', password)
                 user.save()
-                # Redirect to a success page.
                 login(request, user)
-                return HttpResponseRedirect('/qa/')
+                # Redirect to a success page.
+                return HttpResponseRedirect(reverse('qa:home'))
 
         return render(request, self.template_name, {'form': form})
 
@@ -134,16 +175,120 @@ class ProfileView(generic.ListView):
     def dispatch(self, *args, **kwargs):
         return super(ProfileView, self).dispatch(*args, **kwargs)
 
-    def get_queryset(self):
-        """Return the last ten published questions."""
-        return Post.objects.filter(author=self.request.user).order_by('-vote_count')[:10]
+    def get(self, request, *args, **kwargs):
+        form = self.form_class(initial=self.initial)
+        prof = get_object_or_404(Profile, name=request.user.username)
+        prof.reputation = Post.objects.filter(author=request.user.username).aggregate(Sum('vote_count'))
+        reputation = prof.reputation['vote_count__sum']
+        photo = prof.photo
+        reply = Comment.objects.filter(author=self.request.user.username).order_by('-pub_date')
+        comment = Comment.objects.filter(author=self.request.user.username).order_by('-pub_date')
+        post = Post.objects.filter(author=self.request.user.username).order_by('-vote_count')
+        favorites = prof.post_set.all()
+        progress = 0
+        if reputation > 100:
+            progress = 100
+        else:
+            progress = reputation
+
+        progress_text = str(100-progress) + ' more points to next badge!'
+
+        if progress == 100:
+            progress_text = str(progress) + ' point milestone reached!'
+
+        reportees = Profile.objects.filter(reported=True)
+        # if post is None or favorites is None:
+                # return render(request, self.template_name, {'photo': photo, 'reply': reply, 'comment': comment, 'reputation':reputation, 'progress':progress, 'progress_text':progress_text, 'reportees':reportees})
+        # else:
+        return render(request, self.template_name, {'post_list': post, 'photo': photo, 'reply': reply, 'comment': comment, 'reputation':reputation, 'favorites':favorites, 'progress':progress, 'progress_text':progress_text, 'reportees':reportees})
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
+        p = Profile.objects.get(name = request.user.username)
+        image_form = ImageUploadForm(request.POST, request.FILES)
+        if image_form.is_valid():
+            p.photo = image_form.cleaned_data['image']
+            p.save()
         if form.is_valid():
             post_id = request.POST['hidden']
             if request.user.is_authenticated():
                 Post.objects.get(id = int(post_id)).delete()
-            return HttpResponseRedirect('/qa/profile/')
-        # process the data in form.cleaned_data as required
-        return render(request, self.template_name, {'form': form})
+        return HttpResponseRedirect(reverse('qa:profile'))
+
+def GoHome(request):
+    return HttpResponseRedirect('/qa/')
+
+def vote(request, slug):
+    post = get_object_or_404(Post, pk=slug)
+    selected_choice = request.POST['choice']
+    if selected_choice == 'upvote':
+        post.vote_count += 1
+    else:
+        post.vote_count -= 1
+    post.save()
+    # Always return an HttpResponseRedirect after successfully dealing
+    # with POST data. This prevents data from being posted twice if a
+    # user hits the Back button.
+    return HttpResponseRedirect(reverse('qa:detail', args=(post.id,)))
+
+def comment(request, slug):
+    p = get_object_or_404(Post, pk=slug)
+    c = Comment(comment_text=request.POST['comment'],author=request.user.username,pub_date=datetime.datetime.now(),post=p)
+    c.save()
+
+    return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
+
+class ReplyView(generic.DetailView):
+    form_class = ReplyForm
+    initial = {'reply': 'i agree'}
+    model = Comment
+    template_name = 'qa/reply.html'
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class(initial=self.initial)
+        comment_id = request.get_full_path().split('/')[-2]
+        comment = Comment.objects.get(id=comment_id)
+        return render(request, self.template_name, {'form': form, 'comm':comment})
+
+    # @method_decorator(csrf_protect)
+    # def post(request, slug):
+    #     c = get_object_or_404(Comment, pk=slug)
+    #     r = Reply(reply_text = request.POST['reply'], pub_date = datetime.datetime.now(), author=request.user.username,comment=c)
+    #     r.save()
+    #     p = get_object_or_404(Post, pk=c.post.id)
+    #     return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
+
+# @method_decorator(csrf_protect)
+def replying(request, slug):
+    c = get_object_or_404(Comment, pk=slug)
+    r = Reply(reply_text=request.POST['reply'],author=request.user.username,pub_date=datetime.datetime.now(),comment=c)
+    r.save()
+    p = get_object_or_404(Post, pk=c.post.id)
+    return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
+
+def delComment(request, slug):
+    c = get_object_or_404(Comment, pk=slug)
+    c.delete()
+    p = get_object_or_404(Post, pk=c.post.id)
+    return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
+
+def delReply(request, slug):
+    r = get_object_or_404(Reply, pk=slug)
+    r.delete()
+    c = get_object_or_404(Comment, pk=r.comment.id)
+    p = get_object_or_404(Post, pk=c.post.id)
+    return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
+
+# @method_decorator(csrf_protect)
+def favorite(request, slug):
+    p = get_object_or_404(Post, pk=slug)
+    prof = get_object_or_404(Profile, name=request.user.username)
+    p.favorited_by.add(prof)
+    return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
+
+def report(request, slug):
+    p = get_object_or_404(Post, pk=slug)
+    prof = get_object_or_404(Profile, name=p.author)
+    prof.reported = True
+    prof.save()
+    return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
