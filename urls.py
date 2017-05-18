@@ -5,6 +5,8 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+# slugs are for passing variables between views
+# static media refers to the css files
 app_name = 'qa'
 urlpatterns = [
     url(r'^$', views.HomeView.as_view(), name='home'),

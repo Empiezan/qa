@@ -1,6 +1,8 @@
 {% extends 'qa/base.html' %}
 {% block content %}
 <h1>{{ comm }}</h1>
+<!-- pass the username and id of the comment to the Reply view that will associate
+the user as the author of the reply to that comment-->
 {% if comm %}
   <form action="{% url 'qa:replying' slug=comm.id %}" method="post">
     {% csrf_token %}

@@ -5,6 +5,7 @@ from django.db import models
 
 import datetime
 
+# Sum will be used to tally up the total number of votes a user has received
 from django.db.models import Sum
 from django.contrib.auth.models import User
 
@@ -14,6 +15,7 @@ from django.dispatch import receiver
 from django.utils.encoding import python_2_unicode_compatible
 # Create your models here.
 
+# Profile is a class derived from the User class
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, primary_key=True)
@@ -38,6 +40,7 @@ class Post(models.Model):
     author = models.CharField(max_length=200,default='guest')
     pub_date = models.DateTimeField('date published')
     vote_count = models.IntegerField(default=0)
+    # a post can be favorited by many users and a user can favorite many posts
     favorited_by = models.ManyToManyField(Profile)
     def __str__(self):
         return self.post_text

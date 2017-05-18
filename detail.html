@@ -5,11 +5,13 @@
   <p>{{ post.post_text }}</p>
   <footer>{{post.author}}</footer>
 </blockquote>
+<!-- send the csrf token to the 'favorite' view along with the post id so that the post can be added to the user's profile-->
 <form action="{% url 'qa:favorite' slug=post.id %}" method="post">
   {% csrf_token %}
   <input type="submit" value="Favorite" />
 </form>
 <br>
+<!-- link that allows a registered user to report the user who posted the question -->
 {% if user.is_authenticated %}
   {% if user.username == post.author %}
   {% else %}
@@ -20,25 +22,27 @@
   {% endif %}
 {% endif %}
 <br>
+<!-- allow user to upvote/downvote and comment on the post if they are logged in -->
 {% if user.is_authenticated %}
-<form action="{% url 'qa:vote' slug=post.id %}" method="post">
-{% csrf_token %}
-  <input type="radio" name="choice" id="upvote" value="upvote" />
-  <label for="upvote">Upvote</label><br />
-	<input type="radio" name="choice" id="downvote" value="downvote" />
-  <label for="downvote">Downvote</label><br />
-	<input type="submit" value="Vote" />
-</form>
-<br>
-<form action="{% url 'qa:comment' slug=post.id %}" method="post">
-  {% csrf_token %}
-  {{ form }}
+  <form action="{% url 'qa:vote' slug=post.id %}" method="post">
+    {% csrf_token %}
+    <input type="radio" name="choice" id="upvote" value="upvote" />
+    <label for="upvote">Upvote</label><br />
+  	<input type="radio" name="choice" id="downvote" value="downvote" />
+    <label for="downvote">Downvote</label><br />
+  	<input type="submit" value="Vote" />
+  </form>
   <br>
-	<input type="submit" value="Comment"></input>
-</form>
+  <form action="{% url 'qa:comment' slug=post.id %}" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <br>
+  	<input type="submit" value="Comment"></input>
+  </form>
 {% endif %}
 <ul>
 {% for comment in post.comment_set.all %}
+  <!-- each comment along with its associated replies is organized in a separate div -->
   <div class="well">
     <li>{{ comment.comment_text }} - {{ comment.author }}
       {% if user.is_authenticated %}<a href="{% url 'qa:reply' comment.id %}">reply</a>{% endif %}
@@ -46,6 +50,7 @@
         <a href="{% url 'qa:delComment' comment.id %}">delete</a>
       {% endif %}
       <ul>
+        <!-- list all the replies that were made in association with the current comment -->
         {% for reply in comment.reply_set.all %}
           <li>
             {{ reply.reply_text }} - {{ reply.author }}

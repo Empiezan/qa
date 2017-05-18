@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <head>
-<meta charset="utf-8"/>
-<title>Registration</title>
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'qa/style.css' %}" />
+	<meta charset="utf-8"/>
+	<title>Registration</title>
+	{% load static %}
+	<link rel="stylesheet" type="text/css" href="{% static 'qa/style.css' %}" />
 </head>
 <body>
-<div id="main">
-<form action="/qa/register/" method="post" autocomplete="new-password">
-	{% csrf_token %}
-	{{ form.as_p }}
-  <input type="submit" value="Submit">
-</form>
-</div>
+	<div id="main">
+	<form action="/qa/register/" method="post" autocomplete="new-password">
+		{% csrf_token %}
+		{{ form.as_p }}
+	  <input type="submit" value="Submit">
+	</form>
+	</div>
 </body>
 </html>

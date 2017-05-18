@@ -1,24 +1,28 @@
 {% extends 'qa/base.html' %}
 {% block content %}
-
 <h1>
+	<!-- photo is a boolean passed by the Profile view that is true if the user has a profile photo -->
 	{% if photo %}
 		<img src="/qa/media/{{ photo }}" class="img-circle">
 	{% endif %}
 	{{ user.username }} | reputation: {{ reputation }}
 </h1>
 <br>
+<!-- link available to moderators and administrators -->
 {% if user.is_staff %}
 	<a href="/admin/">Administration Page</a>
 {% endif %}
+<!-- progress bar representing the total votes a user has received towards a badge -->
 {% if user.is_authenticated %}
 	<div class="progress">
 		<div class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width:{{progress}}%">
 			{{progress}}%
 		</div>
 	</div>
+	<!-- progress_text indicates whether a user has earned the 100 upvote badge and how many more upvotes are required-->
 	{{ progress_text }}
 	<br>
+	<!-- submission form for uploading a profile picture -->
 	<form action="{% url 'qa:profile' %}" method="post" enctype="multipart/form-data">
 		{% csrf_token %}
 		<input id="id_image" type="file" name="image"/>
@@ -76,6 +80,7 @@
     <p>No posts are available.</p>
 {% endif %}
 
+<!-- the list of users that have been reported -->
 {% if user.is_staff %}
 	<h3>Reported Users</h3>
 	{% if reportees %}
@@ -86,6 +91,5 @@
 		</ul>
 	{% endif %}
 {% endif %}
-
 
 {% endblock %}

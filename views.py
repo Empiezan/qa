@@ -43,8 +43,8 @@ class HomeView(generic.ListView):
             post = post.order_by('-pub_date')
         else:
             post = post.order_by('-vote_count')
-
-        paginator = Paginator(post, 25) # Show 25 contacts per page
+        # Show 25 posts per page
+        paginator = Paginator(post, 25)
 
         page = request.GET.get('page')
         try:
@@ -68,6 +68,7 @@ class DetailView(generic.DetailView):
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(initial=self.initial)
+        # get the numeric id of the post being viewed from the url
         postid = request.get_full_path().split('/')[-2]
         post = Post.objects.get(id=postid)
         return render(request, self.template_name, {'form': form, 'post': post})
@@ -142,7 +143,6 @@ class LogoutView(View):
     def post(self, request, *args, **kwargs):
         logout(request)
         return HttpResponseRedirect('/qa/')
-        # return render(request, self.template_name, {'form': form}
 
 class AskView(View):
     form_class = AskForm
@@ -178,6 +178,7 @@ class ProfileView(generic.ListView):
     def get(self, request, *args, **kwargs):
         form = self.form_class(initial=self.initial)
         prof = get_object_or_404(Profile, name=request.user.username)
+        # add up all of the upvotes and downvotes a user has received to represent their reputation
         prof.reputation = Post.objects.filter(author=request.user.username).aggregate(Sum('vote_count'))
         reputation = prof.reputation['vote_count__sum']
         photo = prof.photo
@@ -190,18 +191,17 @@ class ProfileView(generic.ListView):
             progress = 100
         else:
             progress = reputation
-
+        # if the user has not reached 100 net upvotes, then the text will indicate how many more points the user needs
         progress_text = str(100-progress) + ' more points to next badge!'
 
         if progress == 100:
             progress_text = str(progress) + ' point milestone reached!'
 
         reportees = Profile.objects.filter(reported=True)
-        # if post is None or favorites is None:
-                # return render(request, self.template_name, {'photo': photo, 'reply': reply, 'comment': comment, 'reputation':reputation, 'progress':progress, 'progress_text':progress_text, 'reportees':reportees})
-        # else:
+
         return render(request, self.template_name, {'post_list': post, 'photo': photo, 'reply': reply, 'comment': comment, 'reputation':reputation, 'favorites':favorites, 'progress':progress, 'progress_text':progress_text, 'reportees':reportees})
 
+    # receives post data for users uploading profile pictures and deleting their own posts from the profile page
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         p = Profile.objects.get(name = request.user.username)
@@ -232,10 +232,11 @@ def vote(request, slug):
     return HttpResponseRedirect(reverse('qa:detail', args=(post.id,)))
 
 def comment(request, slug):
+    # get the Post to which the user is attempted to comment on
     p = get_object_or_404(Post, pk=slug)
+    # create a Comment associated with that Post
     c = Comment(comment_text=request.POST['comment'],author=request.user.username,pub_date=datetime.datetime.now(),post=p)
     c.save()
-
     return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
 
 class ReplyView(generic.DetailView):
@@ -250,15 +251,6 @@ class ReplyView(generic.DetailView):
         comment = Comment.objects.get(id=comment_id)
         return render(request, self.template_name, {'form': form, 'comm':comment})
 
-    # @method_decorator(csrf_protect)
-    # def post(request, slug):
-    #     c = get_object_or_404(Comment, pk=slug)
-    #     r = Reply(reply_text = request.POST['reply'], pub_date = datetime.datetime.now(), author=request.user.username,comment=c)
-    #     r.save()
-    #     p = get_object_or_404(Post, pk=c.post.id)
-    #     return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
-
-# @method_decorator(csrf_protect)
 def replying(request, slug):
     c = get_object_or_404(Comment, pk=slug)
     r = Reply(reply_text=request.POST['reply'],author=request.user.username,pub_date=datetime.datetime.now(),comment=c)
@@ -279,7 +271,6 @@ def delReply(request, slug):
     p = get_object_or_404(Post, pk=c.post.id)
     return HttpResponseRedirect(reverse('qa:detail', args=(p.id,)))
 
-# @method_decorator(csrf_protect)
 def favorite(request, slug):
     p = get_object_or_404(Post, pk=slug)
     prof = get_object_or_404(Profile, name=request.user.username)
